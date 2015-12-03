@@ -1,0 +1,9 @@
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Kytheon%2C+Hero+of+Akros White                             ../../Handlers/Image.ashx?multiverseid=398429&type=card 25.jpg  
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Delver+of+Secrets  Blue                              ../../Handlers/Image.ashx?multiverseid=226755&type=card 89.jpg  
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Jace%2C+Vryn%27s+Prodigy Blue                              ../../Handlers/Image.ashx?multiverseid=398435&type=card 94.jpg  
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Liliana%2C+Heretical+Healer  Black                             ../../Handlers/Image.ashx?multiverseid=398442&type=card 192.jpg 
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Garruk+Relentless  Green                             ../../Handlers/Image.ashx?multiverseid=245251&type=card 417.jpg 
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Nissa%2C+Vastwood+Seer Green                             ../../Handlers/Image.ashx?multiverseid=398432&type=card 362.jpg 
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Chandra%2C+Fire+of+Kaladesh  Red                             ../../Handlers/Image.ashx?multiverseid=398423&type=card 260.jpg 
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Huntmaster+of+the+Fells  Green                             ../../Handlers/Image.ashx?multiverseid=262699&type=card 439.jpg 
+http://gatherer.wizards.com/Pages/Card/Details.aspx?name=Fire+%2F%2F+Ice  Colorless                                 
