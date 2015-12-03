@@ -23,7 +23,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-public class CardCreator {
+public class CardEditorDriver {
 	static HashMap<String, List<Integer>> expansion2draw = new HashMap<String, List<Integer>>();
 	public static void main(String[] args) throws IOException, FontFormatException {
 
