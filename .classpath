@@ -3,6 +3,39 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="resources/htmllexer.jar"/>
 	<classpathentry kind="lib" path="resources/htmlparser.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-rasterizer-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-slideshow-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-squiggle-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-svgpp-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-ttf2svg-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/htmllexer.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/htmlparser.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-anim-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-awt-util-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-bridge-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-codec-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-css-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-dom-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-ext-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-extension-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-gui-util-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-gvt-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-parser-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-script-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-svg-dom-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-svggen-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-swing-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-transcoder-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-util-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/batik-xml-1.8.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/fop-transcoder-allinone-1.1.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/js.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/xalan-2.7.0.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/xerces_2_5_0.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/xml-apis-1.3.04.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/xml-apis-ext-1.3.04.jar"/>
+	<classpathentry kind="lib" path="/Volumes/Users/drose/Desktop/Card-Editor/resources/xmlgraphics-commons-2.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

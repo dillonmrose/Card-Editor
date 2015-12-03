@@ -21,11 +21,39 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.TranscodingHints;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.util.SVGConstants;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.w3c.dom.svg.SVGDocument;
+
 public class CardEditorDriver {
+	
+	private static class BufferedImageTranscoder extends ImageTranscoder {
+        private BufferedImage image = null;
+        @Override
+        public BufferedImage createImage(int arg0, int arg1) {
+
+            return image;
+        }
+        private void setImage(BufferedImage image) {
+            this.image = image;
+        }
+        @Override
+        public void writeImage(BufferedImage arg0, TranscoderOutput arg1) throws TranscoderException {
+        }
+    }
+	
 	static String currentDirectory;
+	final static SAXSVGDocumentFactory factory = new SAXSVGDocumentFactory(XMLResourceDescriptor.getXMLParserClassName());
 	static HashMap<String, String> expansion2ExpansionCode = new HashMap<String, String>();
 	static HashMap<String, HashMap<String, List<Point>>> expansionCode2TBPoints = new HashMap<String, HashMap<String, List<Point>>>();
-
+	final static BufferedImageTranscoder bufferedImageTranscoder = new BufferedImageTranscoder();
+	
 	public static void main(String[] args) throws Exception {
 		init();
 		
@@ -62,6 +90,7 @@ public class CardEditorDriver {
 				boozeText = lineCols[colIndexMap.get("booze_text")];
 			}
 			boozifyImage(baseImageFile, boozeImageFile, boozeText, expansion_code, type);
+			break;
 		}
 
 		br.close();
@@ -231,7 +260,25 @@ public class CardEditorDriver {
 
 		}
 
-
+		/*
+		 * This is Code for including mana symbols and stuff need to handle resizing issues and stuff 
+		BufferedImage img = new BufferedImage(600, 600, BufferedImage.TYPE_INT_ARGB);
+		File svg_URI_input = new File(currentDirectory+"/public/icons/T.svg");
+        TranscoderInput input_svg_image = new TranscoderInput(svg_URI_input.toString()); 
+        
+        SVGDocument svg = factory.createSVGDocument(svg_URI_input.toString(), input_svg_image.getInputStream());
+        
+        TranscodingHints hints = new TranscodingHints();
+        hints.put(ImageTranscoder.KEY_XML_PARSER_VALIDATING, Boolean.FALSE);
+        hints.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION, svg.getImplementation());
+        hints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI, SVGConstants.SVG_NAMESPACE_URI);
+        hints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
+        bufferedImageTranscoder.setTranscodingHints(hints);
+        bufferedImageTranscoder.setImage(img);
+        bufferedImageTranscoder.transcode(input_svg_image, null);
+		img = resize(img,20,20);
+		*/
+		
 		int counter = 1;
 		stringHeight = (int) (fontMetrics.getAscent() * 1.2);
 		ig2.setPaint(Color.black);
