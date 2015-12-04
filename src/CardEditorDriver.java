@@ -68,14 +68,16 @@ public class CardEditorDriver {
 		String header = br.readLine();
 		HashMap<String, Integer> colIndexMap = getColIndexMap(header);
 
+		int counter = 0;
+
 		for (String line = br.readLine(); line != null; line = br.readLine()) {
 			String[] lineCols = line.split("\t");
 			System.out.println(lineCols[0]);
 
 			String baseImageFile = currentDirectory + "/cards/original/"
-					+ lineCols[colIndexMap.get("image_file")];
+					+ String.format("%03d", counter) + ".jpg";
 			String boozeImageFile = currentDirectory + "/cards/booze/"
-					+ lineCols[colIndexMap.get("image_file")];
+					+ String.format("%03d", counter) + ".png";
 			String expansion_code = expansion2ExpansionCode
 					.get(lineCols[colIndexMap.get("expansion")]);
 			String type = lineCols[colIndexMap.get("type")];
@@ -85,9 +87,10 @@ public class CardEditorDriver {
 				type = "NonCreature";
 			}
 
-			// String image_url =
-			// "http://magiccards.info/scans/en/"+expansion_code+"/"+lineCols[colIndexMap.get("number")]+".jpg";
-			// downloadBaseImage(image_url, baseImageFile);
+			String image_url = "http://magiccards.info/scans/en/"
+					+ expansion_code + "/"
+					+ lineCols[colIndexMap.get("number")] + ".jpg";
+			downloadBaseImage(image_url, baseImageFile);
 
 			String boozeText = "";
 			if (lineCols.length > colIndexMap.get("booze_text")) {
@@ -95,6 +98,7 @@ public class CardEditorDriver {
 			}
 			boozifyImage(baseImageFile, boozeImageFile, boozeText,
 					expansion_code, type);
+			counter++;
 		}
 
 		int sheetCounter = 0;
@@ -102,28 +106,35 @@ public class CardEditorDriver {
 		BufferedImage sheet = new BufferedImage(312 * 3, 445 * 3,
 				BufferedImage.TYPE_INT_ARGB);
 		Graphics g = sheet.getGraphics();
-		System.out.println("Creating sheet: "+sheetCounter);
-		for (File cardImageFile : new File(currentDirectory + "/cards/booze/").listFiles()) {
-			if(cardImageFile.getName().startsWith(".")) continue;
+		System.out.println("Creating sheet: " + sheetCounter);
+		for (File cardImageFile : new File(currentDirectory + "/cards/booze/")
+				.listFiles()) {
+			if (cardImageFile.getName().startsWith("."))
+				continue;
 
-			System.out.println("\tSheet: "+sheetCounter);
-			System.out.println("\tImage: "+imageCounter);
-			System.out.println("\tCard: "+cardImageFile);
+			System.out.println("\tSheet: " + sheetCounter);
+			System.out.println("\tImage: " + imageCounter);
+			System.out.println("\tCard: " + cardImageFile);
 			BufferedImage cardImage = ImageIO.read(cardImageFile);
-			g.drawImage(cardImage, 312* (imageCounter % 3), 445 * (imageCounter / 3), null);
+			g.drawImage(cardImage, 312 * (imageCounter % 3),
+					445 * (imageCounter / 3), null);
 			imageCounter++;
-			
+
 			if (imageCounter == 9) {
-				ImageIO.write(sheet, "PNG", new File(currentDirectory
-						+ "/cards/sheets/sheet" + sheetCounter + ".jpg"));
+				ImageIO.write(sheet, "PNG",
+						new File(currentDirectory + "/cards/sheets/sheet"
+								+ String.format("%03d", sheetCounter) + ".png"));
 				sheet = new BufferedImage(312 * 3, 445 * 3,
 						BufferedImage.TYPE_INT_ARGB);
 				g = sheet.getGraphics();
 				imageCounter = 0;
 				sheetCounter++;
-				System.out.println("Creating sheet: "+sheetCounter);
+				System.out.println("Creating sheet: " + sheetCounter);
 			}
 		}
+		ImageIO.write(sheet, "PNG", new File(currentDirectory
+				+ "/cards/sheets/sheet" + String.format("%03d", sheetCounter)
+				+ ".jpg"));
 
 		br.close();
 	}
@@ -248,7 +259,8 @@ public class CardEditorDriver {
 		float fontSize = 15;
 		LinkedList<String> textLines = new LinkedList<String>();
 		boolean fits = false;
-		Font font = Font.createFont(Font.TRUETYPE_FONT, new File(currentDirectory + "/public/mplantin.ttf"));
+		Font font = Font.createFont(Font.TRUETYPE_FONT, new File(
+				currentDirectory + "/public/mplantin.ttf"));
 		GraphicsEnvironment ge = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
 		ge.registerFont(font);
