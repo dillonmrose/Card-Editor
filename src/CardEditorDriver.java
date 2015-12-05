@@ -29,19 +29,23 @@ import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.util.XMLResourceDescriptor;
 
 public class CardEditorDriver {
-	private static class Point{
-		double x,y;
-		public Point(double x, double y){
+	private static class Point {
+		double x, y;
+
+		public Point(double x, double y) {
 			this.x = x;
 			this.y = y;
 		}
-		public double getX(){
+
+		public double getX() {
 			return x;
 		}
-		public double getY(){
+
+		public double getY() {
 			return y;
 		}
 	}
+
 	private static class BufferedImageTranscoder extends ImageTranscoder {
 		private BufferedImage image = null;
 
@@ -56,8 +60,7 @@ public class CardEditorDriver {
 		}
 
 		@Override
-		public void writeImage(BufferedImage arg0, TranscoderOutput arg1)
-				throws TranscoderException {
+		public void writeImage(BufferedImage arg0, TranscoderOutput arg1) throws TranscoderException {
 		}
 	}
 
@@ -70,12 +73,14 @@ public class CardEditorDriver {
 	final static int finalWidth = 312;
 	final static int finalHeight = 445;
 	final static String imageType = "png";
-	
+
+	// set to true if you dont have original images
+	private static boolean downloadOriginalImages = false;
+
 	public static void main(String[] args) throws Exception {
 		init();
 
-		String data_file = currentDirectory
-				+ "/public/LegacyCube.2015-09-14.txt";
+		String data_file = currentDirectory + "/public/LegacyCube.2015-09-14.txt";
 
 		FileReader fr = new FileReader(data_file);
 		BufferedReader br = new BufferedReader(fr);
@@ -89,12 +94,23 @@ public class CardEditorDriver {
 			String[] lineCols = line.split("\t");
 			System.out.println(lineCols[0]);
 
-			String baseImageFile = currentDirectory + "/cards/original/"
-					+ String.format("%03d", counter) + ".jpg";
-			String boozeImageFile = currentDirectory + "/cards/booze/"
-					+ String.format("%03d", counter) + "."+ imageType;
-			String expansion_code = expansion2ExpansionCode
-					.get(lineCols[colIndexMap.get("expansion")]);
+			File cardsDir = new File(currentDirectory + "/cards");
+			if (!cardsDir.exists()) {
+				cardsDir.mkdir();
+			}
+			File originalCardsDir = new File(currentDirectory + "/cards/original");
+			if (!originalCardsDir.exists()) {
+				originalCardsDir.mkdir();
+			}
+			File boozeCardsDir = new File(currentDirectory + "/cards/booze");
+			if (!boozeCardsDir.exists()) {
+				boozeCardsDir.mkdir();
+			}
+
+			String originalImageFile = currentDirectory + "/cards/original/" + String.format("%03d", counter) + ".jpg";
+			String boozeImageFile = currentDirectory + "/cards/booze/" + String.format("%03d", counter) + "."
+					+ imageType;
+			String expansion_code = expansion2ExpansionCode.get(lineCols[colIndexMap.get("expansion")]);
 			String type = lineCols[colIndexMap.get("type")];
 			if (type.contains("Creature")) {
 				type = "Creature";
@@ -102,17 +118,20 @@ public class CardEditorDriver {
 				type = "NonCreature";
 			}
 
-			String image_url = "http://magiccards.info/scans/en/"
-					+ expansion_code + "/"
-					+ lineCols[colIndexMap.get("number")] + ".jpg";
-			//downloadBaseImage(image_url, baseImageFile);
+			if (CardEditorDriver.downloadOriginalImages) {
+				String image_url = "http://magiccards.info/scans/en/" + expansion_code + "/"
+						+ lineCols[colIndexMap.get("number")] + ".jpg";
+				System.out.println("downloading image " + image_url);
+				downloadBaseImage(image_url, originalImageFile);
+			}
 
 			String boozeText = "";
 			if (lineCols.length > colIndexMap.get("booze_text")) {
 				boozeText = lineCols[colIndexMap.get("booze_text")];
 			}
-			//boozifyImage(baseImageFile, boozeImageFile, boozeText,
-			//		expansion_code, type);
+
+			boozifyImage(originalImageFile, boozeImageFile, boozeText, expansion_code, type);
+
 			counter++;
 		}
 		br.close();
@@ -120,11 +139,11 @@ public class CardEditorDriver {
 		System.out.println("Create webpage!");
 		FileWriter fw = new FileWriter(currentDirectory + "/cards/booze.html");
 		fw.write("<!DOCTYPE html><html lang=\"en\"><body>");
-		for (File cardImageFile : new File(currentDirectory + "/cards/booze/")
-				.listFiles()) {
+
+		for (File cardImageFile : new File(currentDirectory + "/cards/booze/").listFiles()) {
 			if (!cardImageFile.getName().endsWith(imageType))
 				continue;
-			fw.write("<img src=\""+cardImageFile+"\" width=\"218\" height=\"314\"\\>");
+			fw.write("<img src=\"" + cardImageFile + "\" width=\"218\" height=\"314\"\\>");
 
 		}
 		fw.write("<\\body><\\html>");
@@ -133,16 +152,14 @@ public class CardEditorDriver {
 
 	private static void init() throws Exception {
 		currentDirectory = System.getProperty("user.dir");
-		String expansion2ExpansionCodeFile = currentDirectory
-				+ "/public/Expansion Code Map.txt";
-		String expansionCode2TBPointsFile = currentDirectory
-				+ "/public/Textbox Data.txt";
+		String expansion2ExpansionCodeFile = currentDirectory + "/public/Expansion Code Map.txt";
+		String expansionCode2TBPointsFile = currentDirectory + "/public/Textbox Data.txt";
 		expansion2ExpansionCode = getExpansion2expansionCodeMap(expansion2ExpansionCodeFile);
 		expansionCode2TBPoints = getExpansionCode2TBPointsMap(expansionCode2TBPointsFile);
 	}
 
-	private static HashMap<String, String> getExpansion2expansionCodeMap(
-			String expansion2ExpansionCodeFile) throws Exception {
+	private static HashMap<String, String> getExpansion2expansionCodeMap(String expansion2ExpansionCodeFile)
+			throws Exception {
 		HashMap<String, String> map = new HashMap<String, String>();
 		FileReader fr = new FileReader(expansion2ExpansionCodeFile);
 		BufferedReader br = new BufferedReader(fr);
@@ -182,13 +199,11 @@ public class CardEditorDriver {
 		return map;
 	}
 
-	private static void downloadBaseImage(String image_url, String baseImageFile)
-			throws Exception {
+	private static void downloadBaseImage(String image_url, String baseImageFile) throws Exception {
 		URL url = new URL(image_url);
 		URLConnection connection = url.openConnection();
 		InputStream input = connection.getInputStream();
-		BufferedOutputStream outs = new BufferedOutputStream(
-				new FileOutputStream(baseImageFile));
+		BufferedOutputStream outs = new BufferedOutputStream(new FileOutputStream(baseImageFile));
 		int len;
 		byte[] buf = new byte[1024];
 		while ((len = input.read(buf)) > 0) {
@@ -197,24 +212,22 @@ public class CardEditorDriver {
 		outs.close();
 	}
 
-	private static void boozifyImage(String baseImageFile,
-			String boozeImageFile, String boozeText, String expansion_code,
-			String type) throws Exception {
+	private static void boozifyImage(String baseImageFile, String boozeImageFile, String boozeText,
+			String expansion_code, String type) throws Exception {
 		BufferedImage bi = ImageIO.read(new File(baseImageFile));
-		
+
 		if (boozeText.length() > 0) {
 
 			if (!expansionCode2TBPoints.containsKey(expansion_code)) {
 				expansion_code = "Default";
 			}
-			List<Point> TBPoints = expansionCode2TBPoints.get(expansion_code)
-					.get(type);
+			List<Point> TBPoints = expansionCode2TBPoints.get(expansion_code).get(type);
 			Graphics2D ig2 = bi.createGraphics();
 
 			clearTextBox(bi, ig2, TBPoints);
 			writeTextBox(bi, ig2, boozeText, TBPoints);
 		}
-		//bi = resize(bi, finalWidth, finalHeight);
+		// bi = resize(bi, finalWidth, finalHeight);
 		ImageIO.write(bi, imageType, new File(boozeImageFile));
 	}
 
@@ -224,13 +237,10 @@ public class CardEditorDriver {
 		BufferedImage dimg = new BufferedImage(newW, newH, img.getType());
 		Graphics2D g = dimg.createGraphics();
 
-		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-		RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g.setRenderingHint(RenderingHints.KEY_RENDERING,
-		RenderingHints.VALUE_RENDER_QUALITY);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-		RenderingHints.VALUE_ANTIALIAS_ON);
-		
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
 		g.drawImage(img, 0, 0, newW, newH, null);
 		g.dispose();
 		g.setComposite(AlphaComposite.Src);
@@ -247,8 +257,8 @@ public class CardEditorDriver {
 		return colIndexMap;
 	}
 
-	private static void writeTextBox(BufferedImage bi, Graphics2D ig2, String text,
-			List<Point> TBPoints) throws Exception {
+	private static void writeTextBox(BufferedImage bi, Graphics2D ig2, String text, List<Point> TBPoints)
+			throws Exception {
 
 		int TLX = (int) (TBPoints.get(0).getX() * bi.getWidth());
 		int TLY = (int) (TBPoints.get(0).getY() * bi.getHeight());
@@ -258,10 +268,8 @@ public class CardEditorDriver {
 		float fontSize = 16;
 		LinkedList<String> textLines = new LinkedList<String>();
 		boolean fits = false;
-		Font font = Font.createFont(Font.TRUETYPE_FONT, new File(
-				currentDirectory + "/public/mplantin.ttf"));
-		GraphicsEnvironment ge = GraphicsEnvironment
-				.getLocalGraphicsEnvironment();
+		Font font = Font.createFont(Font.TRUETYPE_FONT, new File(currentDirectory + "/public/mplantin.ttf"));
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		ge.registerFont(font);
 		FontMetrics fontMetrics = null;
 		int stringHeight = 0;
@@ -283,10 +291,8 @@ public class CardEditorDriver {
 					stringHeight = (int) (fontMetrics.getAscent() * 1.1);
 					while (stringWidth > BRX1 - TLX) {
 						int endPoint = textToDraw.length();
-						if (textToDraw.contains(" ")
-								&& textToDraw.contains("\\n")) {
-							endPoint = Math.max(textToDraw.lastIndexOf(' '),
-									textToDraw.lastIndexOf('\n'));
+						if (textToDraw.contains(" ") && textToDraw.contains("\\n")) {
+							endPoint = Math.max(textToDraw.lastIndexOf(' '), textToDraw.lastIndexOf('\n'));
 						} else if (textToDraw.contains(" ")) {
 							endPoint = textToDraw.lastIndexOf(" ");
 						} else if (textToDraw.contains("\\n")) {
@@ -297,8 +303,7 @@ public class CardEditorDriver {
 						stringWidth = fontMetrics.stringWidth(textToDraw);
 					}
 					if (textToDraw.contains("\\n")) {
-						textToDraw = textToDraw.substring(0,
-								textToDraw.indexOf("\\n"));
+						textToDraw = textToDraw.substring(0, textToDraw.indexOf("\\n"));
 					}
 					textLines.add(textToDraw);
 					textTemp = textTemp.substring(textToDraw.length()).trim();
@@ -346,8 +351,7 @@ public class CardEditorDriver {
 		}
 	}
 
-	private static void clearTextBox(BufferedImage bi, Graphics2D ig2,
-			List<Point> TBPoints) {
+	private static void clearTextBox(BufferedImage bi, Graphics2D ig2, List<Point> TBPoints) {
 		int TLX = (int) (TBPoints.get(0).getX() * bi.getWidth());
 		int TLY = (int) (TBPoints.get(0).getY() * bi.getHeight());
 		int BRX1 = (int) (TBPoints.get(1).getX() * bi.getWidth());
