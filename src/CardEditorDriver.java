@@ -1,10 +1,9 @@
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
-import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
@@ -12,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -29,7 +29,19 @@ import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.util.XMLResourceDescriptor;
 
 public class CardEditorDriver {
-
+	private static class Point{
+		double x,y;
+		public Point(double x, double y){
+			this.x = x;
+			this.y = y;
+		}
+		public double getX(){
+			return x;
+		}
+		public double getY(){
+			return y;
+		}
+	}
 	private static class BufferedImageTranscoder extends ImageTranscoder {
 		private BufferedImage image = null;
 
@@ -55,7 +67,10 @@ public class CardEditorDriver {
 	static HashMap<String, String> expansion2ExpansionCode = new HashMap<String, String>();
 	static HashMap<String, HashMap<String, List<Point>>> expansionCode2TBPoints = new HashMap<String, HashMap<String, List<Point>>>();
 	final static BufferedImageTranscoder bufferedImageTranscoder = new BufferedImageTranscoder();
-
+	final static int finalWidth = 312;
+	final static int finalHeight = 445;
+	final static String imageType = "png";
+	
 	public static void main(String[] args) throws Exception {
 		init();
 
@@ -77,7 +92,7 @@ public class CardEditorDriver {
 			String baseImageFile = currentDirectory + "/cards/original/"
 					+ String.format("%03d", counter) + ".jpg";
 			String boozeImageFile = currentDirectory + "/cards/booze/"
-					+ String.format("%03d", counter) + ".png";
+					+ String.format("%03d", counter) + "."+ imageType;
 			String expansion_code = expansion2ExpansionCode
 					.get(lineCols[colIndexMap.get("expansion")]);
 			String type = lineCols[colIndexMap.get("type")];
@@ -90,53 +105,30 @@ public class CardEditorDriver {
 			String image_url = "http://magiccards.info/scans/en/"
 					+ expansion_code + "/"
 					+ lineCols[colIndexMap.get("number")] + ".jpg";
-			downloadBaseImage(image_url, baseImageFile);
+			//downloadBaseImage(image_url, baseImageFile);
 
 			String boozeText = "";
 			if (lineCols.length > colIndexMap.get("booze_text")) {
 				boozeText = lineCols[colIndexMap.get("booze_text")];
 			}
-			boozifyImage(baseImageFile, boozeImageFile, boozeText,
-					expansion_code, type);
+			//boozifyImage(baseImageFile, boozeImageFile, boozeText,
+			//		expansion_code, type);
 			counter++;
 		}
+		br.close();
 
-		int sheetCounter = 0;
-		int imageCounter = 0;
-		BufferedImage sheet = new BufferedImage(312 * 3, 445 * 3,
-				BufferedImage.TYPE_INT_ARGB);
-		Graphics g = sheet.getGraphics();
-		System.out.println("Creating sheet: " + sheetCounter);
+		System.out.println("Create webpage!");
+		FileWriter fw = new FileWriter(currentDirectory + "/cards/booze.html");
+		fw.write("<!DOCTYPE html><html lang=\"en\"><body>");
 		for (File cardImageFile : new File(currentDirectory + "/cards/booze/")
 				.listFiles()) {
-			if (cardImageFile.getName().startsWith("."))
+			if (!cardImageFile.getName().endsWith(imageType))
 				continue;
+			fw.write("<img src=\""+cardImageFile+"\" width=\"218\" height=\"314\"\\>");
 
-			System.out.println("\tSheet: " + sheetCounter);
-			System.out.println("\tImage: " + imageCounter);
-			System.out.println("\tCard: " + cardImageFile);
-			BufferedImage cardImage = ImageIO.read(cardImageFile);
-			g.drawImage(cardImage, 312 * (imageCounter % 3),
-					445 * (imageCounter / 3), null);
-			imageCounter++;
-
-			if (imageCounter == 9) {
-				ImageIO.write(sheet, "PNG",
-						new File(currentDirectory + "/cards/sheets/sheet"
-								+ String.format("%03d", sheetCounter) + ".png"));
-				sheet = new BufferedImage(312 * 3, 445 * 3,
-						BufferedImage.TYPE_INT_ARGB);
-				g = sheet.getGraphics();
-				imageCounter = 0;
-				sheetCounter++;
-				System.out.println("Creating sheet: " + sheetCounter);
-			}
 		}
-		ImageIO.write(sheet, "PNG", new File(currentDirectory
-				+ "/cards/sheets/sheet" + String.format("%03d", sheetCounter)
-				+ ".jpg"));
+		fw.write("<\\body><\\html>");
 
-		br.close();
 	}
 
 	private static void init() throws Exception {
@@ -179,12 +171,9 @@ public class CardEditorDriver {
 			}
 			HashMap<String, List<Point>> type2TBPoints = map.get(lineSplit[0]);
 			List<Point> TBPoints = new ArrayList<Point>();
-			TBPoints.add(new Point(Integer.parseInt(lineSplit[2]), Integer
-					.parseInt(lineSplit[3])));
-			TBPoints.add(new Point(Integer.parseInt(lineSplit[4]), Integer
-					.parseInt(lineSplit[5])));
-			TBPoints.add(new Point(Integer.parseInt(lineSplit[6]), Integer
-					.parseInt(lineSplit[7])));
+			TBPoints.add(new Point(Double.parseDouble(lineSplit[2]), Double.parseDouble(lineSplit[3])));
+			TBPoints.add(new Point(Double.parseDouble(lineSplit[4]), Double.parseDouble(lineSplit[5])));
+			TBPoints.add(new Point(Double.parseDouble(lineSplit[6]), Double.parseDouble(lineSplit[7])));
 			type2TBPoints.put(lineSplit[1], TBPoints);
 			map.put(lineSplit[0], type2TBPoints);
 		}
@@ -212,6 +201,7 @@ public class CardEditorDriver {
 			String boozeImageFile, String boozeText, String expansion_code,
 			String type) throws Exception {
 		BufferedImage bi = ImageIO.read(new File(baseImageFile));
+		
 		if (boozeText.length() > 0) {
 
 			if (!expansionCode2TBPoints.containsKey(expansion_code)) {
@@ -221,10 +211,11 @@ public class CardEditorDriver {
 					.get(type);
 			Graphics2D ig2 = bi.createGraphics();
 
-			clearTextBox(ig2, bi, TBPoints);
-			writeTextBox(ig2, boozeText, TBPoints);
+			clearTextBox(bi, ig2, TBPoints);
+			writeTextBox(bi, ig2, boozeText, TBPoints);
 		}
-		ImageIO.write(bi, "PNG", new File(boozeImageFile));
+		//bi = resize(bi, finalWidth, finalHeight);
+		ImageIO.write(bi, imageType, new File(boozeImageFile));
 	}
 
 	public static BufferedImage resize(BufferedImage img, int newW, int newH) {
@@ -232,10 +223,18 @@ public class CardEditorDriver {
 		int h = img.getHeight();
 		BufferedImage dimg = new BufferedImage(newW, newH, img.getType());
 		Graphics2D g = dimg.createGraphics();
+
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g.drawImage(img, 0, 0, newW, newH, 0, 0, w, h, null);
+		RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING,
+		RenderingHints.VALUE_RENDER_QUALITY);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+		RenderingHints.VALUE_ANTIALIAS_ON);
+		
+		g.drawImage(img, 0, 0, newW, newH, null);
 		g.dispose();
+		g.setComposite(AlphaComposite.Src);
+
 		return dimg;
 	}
 
@@ -248,15 +247,15 @@ public class CardEditorDriver {
 		return colIndexMap;
 	}
 
-	private static void writeTextBox(Graphics2D ig2, String text,
+	private static void writeTextBox(BufferedImage bi, Graphics2D ig2, String text,
 			List<Point> TBPoints) throws Exception {
 
-		int TLX = (int) TBPoints.get(0).getX();
-		int TLY = (int) TBPoints.get(0).getY();
-		int BRX1 = (int) TBPoints.get(1).getX();
-		int BRY1 = (int) TBPoints.get(1).getY();
+		int TLX = (int) (TBPoints.get(0).getX() * bi.getWidth());
+		int TLY = (int) (TBPoints.get(0).getY() * bi.getHeight());
+		int BRX1 = (int) (TBPoints.get(1).getX() * bi.getWidth());
+		int BRY1 = (int) (TBPoints.get(1).getY() * bi.getHeight());
 
-		float fontSize = 15;
+		float fontSize = 16;
 		LinkedList<String> textLines = new LinkedList<String>();
 		boolean fits = false;
 		Font font = Font.createFont(Font.TRUETYPE_FONT, new File(
@@ -293,6 +292,7 @@ public class CardEditorDriver {
 						} else if (textToDraw.contains("\\n")) {
 							endPoint = textToDraw.lastIndexOf("\\n");
 						}
+
 						textToDraw = textToDraw.substring(0, endPoint);
 						stringWidth = fontMetrics.stringWidth(textToDraw);
 					}
@@ -346,14 +346,14 @@ public class CardEditorDriver {
 		}
 	}
 
-	private static void clearTextBox(Graphics2D ig2, BufferedImage bi,
+	private static void clearTextBox(BufferedImage bi, Graphics2D ig2,
 			List<Point> TBPoints) {
-		int TLX = (int) TBPoints.get(0).getX();
-		int TLY = (int) TBPoints.get(0).getY();
-		int BRX1 = (int) TBPoints.get(1).getX();
-		int BRY1 = (int) TBPoints.get(1).getY();
-		int BRX2 = (int) TBPoints.get(2).getX();
-		int BRY2 = (int) TBPoints.get(2).getY();
+		int TLX = (int) (TBPoints.get(0).getX() * bi.getWidth());
+		int TLY = (int) (TBPoints.get(0).getY() * bi.getHeight());
+		int BRX1 = (int) (TBPoints.get(1).getX() * bi.getWidth());
+		int BRY1 = (int) (TBPoints.get(1).getY() * bi.getHeight());
+		int BRX2 = (int) (TBPoints.get(2).getX() * bi.getWidth());
+		int BRY2 = (int) (TBPoints.get(2).getY() * bi.getHeight());
 		int colorRGB = bi.getRGB(TLX, TLY);
 		ig2.setPaint(new Color(colorRGB));
 		ig2.fillRect(TLX, TLY, BRX1 - TLX, BRY1 - TLY);
