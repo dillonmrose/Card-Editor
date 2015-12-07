@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
 import org.htmlparser.Node;
@@ -11,7 +12,7 @@ import org.htmlparser.util.NodeList;
 
 public class Card {
 	String name = "";
-	String cardNumber = "";
+	String number = "";
 	String type = "";
 	String expansion = "";
 	String rulesText = "";
@@ -20,7 +21,25 @@ public class Card {
 	String power = "";
 	String toughness = "";
 	String cmc = "";
+	BufferedImage image = null;
 
+	public Card(String line){
+		String[] lineSplit = line.split("\t");
+		name = lineSplit[0];
+		type = lineSplit[1];
+		cmc = lineSplit[2];
+		mana = lineSplit[3];
+		expansion = lineSplit[4];
+		number = lineSplit[5];
+		power = lineSplit[6];
+		toughness = lineSplit[7];
+		if(lineSplit.length > 8){
+			rulesText = lineSplit[8];
+		}
+		if(lineSplit.length > 9){
+			boozeText = lineSplit[9];
+		}
+	}
 	public Card(String sourceUrl, HashMap<String, String> symbolMap)
 			throws Exception {
 		HashMap<String, Tag> id2Tag = new HashMap<String, Tag>();
@@ -53,7 +72,7 @@ public class Card {
 			type = getBasicValue(id2Tag.get("type"));
 		}
 		if (id2Tag.containsKey("number")) {
-			cardNumber = getBasicValue(id2Tag.get("number"));
+			number = getBasicValue(id2Tag.get("number"));
 		}
 		if (id2Tag.containsKey("set")) {
 			expansion = getBasicValue(id2Tag.get("set"));
@@ -185,7 +204,7 @@ public class Card {
 		sb.append("\t");
 		sb.append(expansion);
 		sb.append("\t");
-		sb.append(cardNumber);
+		sb.append(number);
 		sb.append("\t");
 		sb.append(power);
 		sb.append("\t");
