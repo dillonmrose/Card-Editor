@@ -24,26 +24,40 @@ import java.util.Scanner;
 import javax.imageio.ImageIO;
 
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.TranscodingHints;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.util.SVGConstants;
 import org.apache.batik.util.XMLResourceDescriptor;
+import org.w3c.dom.svg.SVGDocument;
 
-public class CardEditorDriver {
-	/*
-	 * private static class BufferedImageTranscoder extends ImageTranscoder {
-	 * private BufferedImage image = null;
-	 * 
-	 * @Override public BufferedImage createImage(int arg0, int arg1) {
-	 * 
-	 * return image; }
-	 * 
-	 * private void setImage(BufferedImage image) { this.image = image; }
-	 * 
-	 * @Override public void writeImage(BufferedImage arg0, TranscoderOutput
-	 * arg1) throws TranscoderException { } }
-	 */
+public class CubeEditor {
+
+	private static class BufferedImageTranscoder extends ImageTranscoder {
+		private BufferedImage image = null;
+
+		@Override
+		public BufferedImage createImage(int arg0, int arg1) {
+
+			return image;
+		}
+
+		private void setImage(BufferedImage image) {
+			this.image = image;
+		}
+
+		@Override
+		public void writeImage(BufferedImage arg0, TranscoderOutput arg1)
+				throws TranscoderException {
+		}
+	}
 
 	static String currentDirectory;
 	final static SAXSVGDocumentFactory factory = new SAXSVGDocumentFactory(
 			XMLResourceDescriptor.getXMLParserClassName());
+	final static BufferedImageTranscoder bufferedImageTranscoder = new BufferedImageTranscoder();
 	static HashMap<String, String> expansion2ExpansionCode = new HashMap<String, String>();
 	static HashMap<String, HashMap<String, List<Point>>> expansionCode2TBPoints = new HashMap<String, HashMap<String, List<Point>>>();
 	// final static BufferedImageTranscoder bufferedImageTranscoder = new
@@ -53,7 +67,7 @@ public class CardEditorDriver {
 	final static String imageType = "png";
 
 	// set to true if you dont have original images
-	private static boolean downloadOriginalImages = false;
+	private static boolean downloadOriginalImages = !true;
 
 	public static void main(String[] args) throws Exception {
 		init();
@@ -76,13 +90,16 @@ public class CardEditorDriver {
 					+ String.format("%03d", counter) + "." + imageType;
 			String expansion_code = expansion2ExpansionCode.get(card.expansion);
 			String type = card.type;
+			
 			if (type.contains("Creature")) {
 				type = "Creature";
-			} else {
+			} else if (type.contains("Planeswalker")) {
+				type = "Planeswalker";
+			}else {
 				type = "NonCreature";
 			}
 
-			if (CardEditorDriver.downloadOriginalImages) {
+			if (CubeEditor.downloadOriginalImages) {
 				String image_url = "http://magiccards.info/scans/en/"
 						+ expansion_code + "/" + card.number + ".jpg";
 				System.out.println("downloading image " + image_url);
@@ -93,7 +110,6 @@ public class CardEditorDriver {
 					expansion_code, type);
 
 			counter++;
-			break;
 		}
 		sc.close();
 
@@ -105,11 +121,11 @@ public class CardEditorDriver {
 				.listFiles()) {
 			if (!cardImageFile.getName().endsWith(imageType))
 				continue;
-			fw.write("<img src=\"" + cardImageFile
-					+ "\" width=\"218\" height=\"314\"\\>");
+			fw.write("<img src=\"booze\\" + cardImageFile.getName()
+					+ "\" width=\"218\" height=\"314\"/>");
 
 		}
-		fw.write("<\\body><\\html>");
+		fw.write("</body></html>");
 		fw.close();
 
 	}
@@ -203,14 +219,15 @@ public class CardEditorDriver {
 
 		if (boozeText.length() > 0) {
 
-			if (!expansionCode2TBPoints.containsKey(expansion_code)) {
+			if (!expansionCode2TBPoints.containsKey(expansion_code) || !expansionCode2TBPoints.get(expansion_code).containsKey(type)) {
 				expansion_code = "Default";
 			}
+			
 			List<Point> TBPoints = expansionCode2TBPoints.get(expansion_code)
 					.get(type);
 			Graphics2D ig2 = bi.createGraphics();
 
-			clearTextBox(bi, ig2, TBPoints);
+			clearTextBox(bi, ig2, TBPoints, type);
 			writeTextBox(bi, ig2, boozeText, TBPoints);
 		}
 		ImageIO.write(bi, imageType, new File(boozeImageFile));
@@ -258,16 +275,16 @@ public class CardEditorDriver {
 			ig2.setFont(font);
 			fontMetrics = ig2.getFontMetrics();
 			textLines.clear();
+			stringHeight = (int) (fontMetrics.getAscent() * 1.2);
 
 			String textTemp = text.replace("\"", "");
 
-			int counter = 1;
+			int numberOfLines = 0;
 			while (!textTemp.isEmpty()) {
-				stringHeight = (int) (fontMetrics.getAscent() * 1.1);
+
 				while (textTemp.length() > 0) {
 					String textToDraw = textTemp;
-					int stringWidth = fontMetrics.stringWidth(textToDraw);
-					stringHeight = (int) (fontMetrics.getAscent() * 1.1);
+					int stringWidth = getStringWidth(textToDraw, fontMetrics);
 					while (stringWidth > BRX1 - TLX) {
 						int endPoint = textToDraw.length();
 						if (textToDraw.contains(" ")
@@ -292,49 +309,118 @@ public class CardEditorDriver {
 					if (textTemp.startsWith("\\n")) {
 						textTemp = textTemp.substring("\\n".length()).trim();
 					}
-					counter++;
+					numberOfLines++;
 				}
 			}
-			if (counter * stringHeight < BRY1 - TLY) {
+			if (numberOfLines * stringHeight < BRY1 - TLY) {
 				fits = true;
 			}
 			fontSize -= .1;
 
 		}
 
-		/*
-		 * This is Code for including mana symbols and stuff need to handle
-		 * resizing issues and stuff BufferedImage img = new BufferedImage(600,
-		 * 600, BufferedImage.TYPE_INT_ARGB); File svg_URI_input = new
-		 * File(currentDirectory+"/public/icons/T.svg"); TranscoderInput
-		 * input_svg_image = new TranscoderInput(svg_URI_input.toString());
-		 * 
-		 * SVGDocument svg = factory.createSVGDocument(svg_URI_input.toString(),
-		 * input_svg_image.getInputStream());
-		 * 
-		 * TranscodingHints hints = new TranscodingHints();
-		 * hints.put(ImageTranscoder.KEY_XML_PARSER_VALIDATING, Boolean.FALSE);
-		 * hints.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION,
-		 * svg.getImplementation());
-		 * hints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI,
-		 * SVGConstants.SVG_NAMESPACE_URI);
-		 * hints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
-		 * bufferedImageTranscoder.setTranscodingHints(hints);
-		 * bufferedImageTranscoder.setImage(img);
-		 * bufferedImageTranscoder.transcode(input_svg_image, null); img =
-		 * resize(img,20,20);
-		 */
-
-		int counter = 1;
-		stringHeight = (int) (fontMetrics.getAscent() * 1.2);
+		int counter = 0;
 		ig2.setPaint(Color.black);
+		int shiftX = 0;
 		for (String textLine : textLines) {
-			ig2.drawString(textLine, TLX, TLY + stringHeight * counter++);
+			counter ++;
+			shiftX = 0;
+			String tempTextLine = textLine;
+			while (tempTextLine.contains("\\")) {
+				int start = tempTextLine.indexOf('\\');
+				int endDash = tempTextLine.indexOf('\\', start + 1);
+				int endSpace = tempTextLine.indexOf(' ', start + 1);
+				int end = tempTextLine.length();
+				if (endDash > 0 && endSpace > 0) {
+					end = Math.min(tempTextLine.indexOf('\\', start + 1),
+							tempTextLine.indexOf(' ', start + 1));
+				} else if (endDash > 0) {
+					end = endDash;
+				} else if (endSpace > 0){
+					end = endSpace;
+				}
+				String key = tempTextLine.substring(start + 1, end);
+
+				if (start - 1 > 0) {
+					String partialTextLine = tempTextLine.substring(0,
+							start - 1);
+					ig2.drawString(partialTextLine, TLX + shiftX, TLY
+							+ stringHeight * counter);
+					shiftX += getStringWidth(partialTextLine, fontMetrics);
+				}
+				tempTextLine = tempTextLine.substring(end);
+				File imageFile = new File(currentDirectory + "/public/symbols/"
+						+ key + ".svg");
+
+				BufferedImage img = new BufferedImage(600, 600,
+						BufferedImage.TYPE_INT_ARGB);
+				TranscoderInput input_svg_image = new TranscoderInput(
+						imageFile.toString());
+
+				SVGDocument svg = factory.createSVGDocument(
+						imageFile.toString(), input_svg_image.getInputStream());
+
+				TranscodingHints hints = new TranscodingHints();
+				hints.put(ImageTranscoder.KEY_XML_PARSER_VALIDATING,
+						Boolean.FALSE);
+				hints.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION,
+						svg.getImplementation());
+				hints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI,
+						SVGConstants.SVG_NAMESPACE_URI);
+				hints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
+				bufferedImageTranscoder.setTranscodingHints(hints);
+				bufferedImageTranscoder.setImage(img);
+				bufferedImageTranscoder.transcode(input_svg_image, null);
+				img = resize(img, fontMetrics.getAscent(), fontMetrics.getAscent());
+				ig2.drawImage(img, null, TLX + shiftX, TLY + stringHeight * counter - (int)(fontMetrics.getAscent() * 5.0/6.0));
+				shiftX += fontMetrics.getAscent();
+			}
+			ig2.drawString(tempTextLine, TLX + shiftX, TLY + stringHeight
+					* counter);
 		}
 	}
 
+	private static int getStringWidth(String text, FontMetrics fontMetrics) {
+		int width = 0;
+		while (text.contains("\\")) {
+			int start = text.indexOf('\\');
+			int endDash = text.indexOf('\\', start + 1);
+			int endSpace = text.indexOf(' ', start + 1);
+			int end = text.length();
+			if (endDash > 0 && endSpace > 0) {
+				end = Math.min(text.indexOf('\\', start + 1),
+						text.indexOf(' ', start + 1));
+			} else if (endDash > 0) {
+				end = endDash;
+			} else if (endSpace > 0){
+				end = endSpace;
+			}
+			String key = text.substring(start + 1, end);
+			if (isValidSymbol(key)) {
+				width += fontMetrics.getAscent();
+				text = text.substring(0, start) + text.substring(end);
+			}
+			if (key.contains("n")) {
+				break;
+			}
+		}
+		width += fontMetrics.stringWidth(text);
+		return width;
+	}
+
+	private static boolean isValidSymbol(String name) {
+		File symbolsDir = new File(currentDirectory + "/public/symbols");
+		for (File symbolFile : symbolsDir.listFiles()) {
+			String symbolName = symbolFile.getName();
+			if (name.equals(symbolName.substring(0, symbolName.indexOf(".")))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static void clearTextBox(BufferedImage bi, Graphics2D ig2,
-			List<Point> TBPoints) {
+			List<Point> TBPoints, String type) {
 		int TLX = (int) (TBPoints.get(0).getX() * bi.getWidth());
 		int TLY = (int) (TBPoints.get(0).getY() * bi.getHeight());
 		int BRX1 = (int) (TBPoints.get(1).getX() * bi.getWidth());
@@ -342,6 +428,9 @@ public class CardEditorDriver {
 		int BRX2 = (int) (TBPoints.get(2).getX() * bi.getWidth());
 		int BRY2 = (int) (TBPoints.get(2).getY() * bi.getHeight());
 		int colorRGB = bi.getRGB(TLX, TLY);
+		if(type.contains("Planeswalker")){
+			colorRGB = Color.white.getRGB();
+		}
 		ig2.setPaint(new Color(colorRGB));
 		ig2.fillRect(TLX, TLY, BRX1 - TLX, BRY1 - TLY);
 		ig2.fillRect(TLX, TLY, BRX2 - TLX, BRY2 - TLY);
